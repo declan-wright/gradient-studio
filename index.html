@@ -1,0 +1,1095 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>gradient studio</title>
+    <link id="favicon" rel="icon" type="image/png" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAAAXNSR0IArs4c6QAAAAlwSFlzAAALEwAACxMBAJqcGAAAAAd0SU1FB+EKEAIuM1YkZkYAAABTSURBVFiF7c5BDQAACAOxUrV/ZywgxoMDAAAAAPHGCSn4tB9NAAAAAAAAAADAG2kRAAAAAAAAAMB6JwIAAAAAAADgZ2gPPgAAAACAALsL6zaP9x3SAAAAAElFTkSuQmCC">
+    <style>
+        :root {
+            --bg-color: #000000;
+            --text-color: #FFFFFF;
+            --text-color-secondary: #AAAAAA;
+            --input-border-color: #333333; 
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            margin: 0;
+            padding: 30px 20px;
+            background-color: var(--bg-color);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 30px;
+            color: var(--text-color);
+            min-height: 100vh;
+            box-sizing: border-box;
+            text-transform: lowercase; /* Global lowercase */
+        }
+
+        h1 {
+            color: var(--text-color);
+            text-align: center;
+            font-weight: 200; /* Lighter */
+            font-size: 3em;   /* Slightly larger */
+            letter-spacing: 1px;
+            margin-bottom: 10px;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+            border-bottom: 1px solid var(--input-border-color);
+            padding-bottom: 10px;
+            width: 100%;
+            max-width: 900px;
+            justify-content: center;
+        }
+        .tab-button {
+            background: none;
+            border: none;
+            color: var(--text-color-secondary);
+            padding: 10px 15px;
+            cursor: pointer;
+            font-size: 1.1em;
+            font-weight: 300;
+            transition: color 0.2s ease, border-bottom-color 0.2s ease;
+            border-bottom: 2px solid transparent;
+        }
+        .tab-button.active {
+            color: var(--text-color);
+            border-bottom-color: var(--text-color);
+            font-weight: 500;
+        }
+
+        .tab-content {
+            display: none;
+            width: 100%;
+            max-width: 900px; 
+        }
+        .tab-content.active {
+            display: block;
+        }
+
+        .controls-wrapper {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 25px; 
+        }
+        
+        .controls-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); 
+            gap: 30px 25px; 
+            box-sizing: border-box;
+        }
+
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        label {
+            font-weight: 400;
+            font-size: 0.9em;
+            color: var(--text-color-secondary);
+        }
+
+        input[type="color"], 
+        select {
+            background-color: transparent; 
+            color: var(--text-color);
+            border: none;
+            padding: 8px 0px; 
+            font-size: 1em;
+            box-sizing: border-box;
+            outline: none;
+            width: 100%; 
+            text-transform: lowercase; /* Ensure select text is lowercase */
+        }
+        
+        select {
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
+            background-image: url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23FFFFFF%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.4-5.4-12.8z%22%2F%3E%3C%2Fsvg%3E');
+            background-repeat: no-repeat;
+            background-position: right 0px center;
+            background-size: .65em auto;
+            padding-right: 1.5em; 
+        }
+        
+        input[type="color"] {
+            width: 40px; 
+            height: 40px;
+            padding: 0; 
+            border: 1px solid var(--input-border-color); 
+            border-radius: 6px;
+            cursor: pointer;
+        }
+        input[type="color"]::-webkit-color-swatch-wrapper { padding: 0; }
+        input[type="color"]::-webkit-color-swatch { border: none; border-radius: 4px; }
+        input[type="color"]::-moz-color-swatch { border: none; border-radius: 4px;}
+
+        .actions-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+            margin-top: 20px; 
+            flex-wrap: wrap; /* Allow wrapping for smaller screens */
+            gap: 15px; /* Gap between download buttons and generate button */
+        }
+
+        .download-options {
+            display: flex;
+            gap: 10px; /* Reduced gap between individual download buttons */
+            flex-wrap: wrap;
+        }
+        .download-options button,
+        .generate-button { /* unified class for generate buttons */
+            background-color: transparent;
+            color: var(--text-color);
+            border: none;
+            padding: 10px 0; 
+            cursor: pointer;
+            font-size: 0.95em;
+            font-weight: 400;
+            transition: color 0.2s ease, border-color 0.2s ease;
+            text-transform: lowercase; /* Ensure button text is lowercase */
+        }
+        .download-options button {
+            padding: 10px 8px; /* Slightly adjust padding for condensed text */
+        }
+        .download-options button:hover,
+        .download-options button:focus {
+            color: var(--text-color-secondary); 
+            outline: none;
+        }
+
+        .generate-button {
+            padding: 12px 25px;
+            border: 1px solid transparent; 
+            border-radius: 8px;
+            font-weight: 500;
+        }
+        .generate-button:hover,
+        .generate-button:focus {
+            border: 1px solid var(--text-color);
+            outline: none;
+        }
+        .generate-button:disabled {
+            color: var(--text-color-secondary);
+            cursor: not-allowed;
+            border-color: transparent !important; 
+        }
+
+        .canvas-area {
+            width: 100%;
+            max-width: 800px; 
+            aspect-ratio: 4 / 3;
+            background-color: var(--bg-color); 
+            border-radius: 20px; 
+            box-shadow: inset 7px 7px 15px rgba(0,0,0,0.6), 
+                        inset -7px -7px 15px rgba(255,255,255,0.03);
+            position: relative;
+            overflow: hidden; /* This clips the canvas for rounded corners */
+            padding: 10px; 
+            margin-top: 10px; 
+        }
+
+        #previewCanvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+            border-radius: 12px; /* Inner rounding, clipped by parent's overflow:hidden */
+        }
+        
+        #loadingMessage {
+            position: fixed; /* Changed for fullscreen */
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.85); 
+            backdrop-filter: blur(8px); 
+            -webkit-backdrop-filter: blur(8px);
+            color: var(--text-color);
+            display: flex;
+            flex-direction: column; 
+            justify-content: center;
+            align-items: center;
+            font-size: 1.4em;
+            font-weight: 500;
+            z-index: 1000; /* Ensure it's on top */
+            text-align: center;
+            display: none; 
+        }
+
+        .history-section {
+            margin-top: 50px;
+            width: 100%;
+            max-width: 900px;
+            text-align: center;
+        }
+        .history-section h2 {
+            font-weight: 300;
+            font-size: 1.8em;
+            margin-bottom: 20px;
+            color: var(--text-color-secondary);
+        }
+        #historyContainer {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+            gap: 20px;
+        }
+        .history-item {
+            aspect-ratio: 4 / 3;
+            background-color: #111;
+            border-radius: 8px;
+            overflow: hidden;
+            position: relative;
+            cursor: pointer;
+            border: 1px solid #222;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        .history-item:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        }
+        .history-item canvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+        }
+        .history-item .restore-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.6);
+            color: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 1em;
+            font-weight: 500;
+            opacity: 0;
+            transition: opacity 0.2s ease;
+            pointer-events: none;
+            text-transform: lowercase;
+        }
+        .history-item:hover .restore-overlay {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        /* API Key Modal Styles */
+        #apiKeyModal {
+            display: none; position:fixed; left:0; top:0; width:100%; height:100%; 
+            background-color:rgba(0,0,0,0.5); /* Dimmed background */
+            backdrop-filter: blur(5px); -webkit-backdrop-filter: blur(5px);
+            z-index:2000;
+            text-transform: lowercase; /* Ensure modal text is lowercase */
+        }
+        #apiKeyModalContent {
+            background-color: #1a1a1a; /* Darker modal background */
+            color: var(--text-color);
+            margin: 15% auto; padding:25px; border:1px solid #333; 
+            width:90%; max-width:450px; border-radius: 12px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.4);
+        }
+        #modalCloseButton {
+            float:right; cursor:pointer; font-size:22px; color: var(--text-color-secondary);
+            transition: color 0.2s ease;
+        }
+        #modalCloseButton:hover { color: var(--text-color); }
+        #apiKeyModal h4 { margin-top: 0; font-weight: 400; font-size: 1.4em; margin-bottom: 15px;}
+        #apiKeyModal p { font-size: 0.95em; color: var(--text-color-secondary); margin-bottom: 20px;}
+        #apiKeyInput { 
+            width: calc(100% - 20px); margin-bottom:20px; padding: 12px 10px; 
+            background-color: #0f0f0f; border: 1px solid var(--input-border-color);
+            color: var(--text-color); border-radius: 6px; font-size: 1em;
+        }
+        #apiKeyModalButtons { display: flex; justify-content: space-between; gap: 10px;}
+        #apiKeyModalButtons button {
+            flex-grow: 1;
+            padding: 10px; font-size: 0.95em; border-radius: 6px;
+            cursor: pointer; transition: background-color 0.2s ease, border-color 0.2s ease;
+            text-transform: lowercase; /* Ensure button text lowercase */
+        }
+        #saveApiKeyButton { background-color: var(--text-color); color: var(--bg-color); border: 1px solid var(--text-color); font-weight: 500;}
+        #saveApiKeyButton:hover { background-color: #e0e0e0; border-color: #e0e0e0; }
+        #getApiKeyButton { background-color: transparent; color: var(--text-color); border: 1px solid var(--input-border-color); }
+        #getApiKeyButton:hover { border-color: var(--text-color-secondary); }
+
+        /* Hidden canvas for favicon */
+        #faviconCanvas { display: none; }
+
+    </style>
+</head>
+<body>
+    <h1>gradient studio</h1>
+
+    <div class="tabs">
+        <button class="tab-button active" id="tabBlobStudio" data-tab="blobStudio">organic gradients</button>
+        <button class="tab-button" id="tabNature" data-tab="nature">inspired by nature</button>
+    </div>
+
+    <!-- Tab Content for Blob Studio -->
+    <div id="blobStudioContent" class="tab-content active">
+        <div class="controls-wrapper">
+            <div class="controls-grid">
+                <div class="control-group">
+                    <label for="color1">color 1:</label>
+                    <input type="color" id="color1" value="#FF6B6B">
+                </div>
+                <div class="control-group">
+                    <label for="color2">color 2:</label>
+                    <input type="color" id="color2" value="#4ECDC4">
+                </div>
+                <div class="control-group">
+                    <label for="color3">color 3:</label>
+                    <input type="color" id="color3" value="#45B7D1">
+                </div>
+                <div class="control-group">
+                    <label for="color4">color 4:</label>
+                    <input type="color" id="color4" value="#F7B801">
+                </div>
+                <div class="control-group">
+                    <label for="numBlobsSelect">number of blobs:</label>
+                    <select id="numBlobsSelect"></select>
+                </div>
+                <div class="control-group">
+                    <label for="blurAmountSelect">blob softness:</label>
+                    <select id="blurAmountSelect"></select>
+                </div>
+                <div class="control-group">
+                    <label for="grainLevelSelectBlob">grain level:</label>
+                    <select id="grainLevelSelectBlob">
+                        <option value="none">none</option>
+                        <option value="light">light</option>
+                        <option value="medium">medium</option>
+                        <option value="high">high</option>
+                        <option value="superheavy">super heavy</option>
+                    </select>
+                </div>
+                <div class="control-group">
+                    <label for="backgroundColor">background color:</label>
+                    <input type="color" id="backgroundColor" value="#0A0A0A">
+                </div>
+            </div>
+            <div class="actions-container">
+                <div class="download-options" id="downloadOptionsBlob">
+                    {/* Buttons populated by JS */}
+                </div>
+                <button id="generateBtnBlob" class="generate-button">build gradient</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tab Content for Inspired by Nature -->
+    <div id="natureContent" class="tab-content">
+        <div class="controls-wrapper">
+            <div class="controls-grid">
+                <div class="control-group">
+                    <label for="natureStyleSelect">style:</label>
+                    <select id="natureStyleSelect">
+                        <option value="flower">flower gradients</option>
+                        <option value="sun">sun gradients</option>
+                        <option value="fractal">fractal gradients</option>
+                    </select>
+                </div>
+                <div class="control-group">
+                    <label for="natureBlurAmountSelect">softness (blur):</label>
+                    <select id="natureBlurAmountSelect"></select>
+                </div>
+                <div class="control-group">
+                    <label for="natureGrainLevelSelect">grain level:</label>
+                    <select id="natureGrainLevelSelect">
+                        <option value="none">none</option>
+                        <option value="light">light</option>
+                        <option value="medium">medium</option>
+                        <option value="high">high</option>
+                        <option value="superheavy">super heavy</option>
+                    </select>
+                </div>
+            </div>
+             <div class="actions-container">
+                <div class="download-options" id="downloadOptionsNature">
+                    {/* Buttons populated by JS */}
+                </div>
+                <button id="generateBtnNature" class="generate-button">build gradient</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="canvas-area">
+        <canvas id="previewCanvas"></canvas>
+    </div>
+    <div id="loadingMessage">creating gradient</div>
+
+
+    <!-- API Key Modal -->
+    <div id="apiKeyModal">
+        <div id="apiKeyModalContent">
+            <span id="modalCloseButton">×</span>
+            <h4 id="modalTitle">api key required</h4>
+            <p id="modalMessage">enter your api key:</p>
+            <input type="text" id="apiKeyInput" placeholder="your api key">
+            <div id="apiKeyModalButtons">
+                <button id="getApiKeyButton" onclick="window.open('https://aistudio.google.com/apikey', '_blank')">get one here</button>
+                <button id="saveApiKeyButton">save and use key</button>
+            </div>
+        </div>
+    </div>
+    
+    <canvas id="faviconCanvas"></canvas> <!-- Hidden, for favicon rendering -->
+    <canvas id="croppingCanvas" style="display:none;"></canvas> <!-- For AI image cropping -->
+
+
+    <div class="history-section">
+        <h2>past creations</h2>
+        <div id="historyContainer"></div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // --- Global Constants & Variables ---
+            const FIXED_PROMPT_FLOWER = "generate a 4:3 wide aspect ratio image of an abstract macro photograph of a flower in the style of a mid-century color field painting, hazy, out of focus.";
+            const FIXED_PROMPT_SUN = "generate an image of a 4:3 wide aspect ratio photograph bright yellow and orange and red hazy image of a lens flare, out of focus, varied contours, vivid, brilliant, optimistic, sun flare. not too intense, natural looking.";
+            const FIXED_PROMPT_FRACTAL = "generate an image of a 4:3 wide aspect ratio photograph of a fractal pattern from nature represented as a gradient. for example, glowing lightning, lush deep ferns, turquoise rivers flowing through a desert. it should be out of focus, soft and yet hinting at a deeper complexity.";
+            
+            const API_KEY_STORAGE_KEY = 'geminiApiKey_gradientStudio';
+            const MODEL_NAME_TO_USE = "gemini-2.0-flash-preview-image-generation"; 
+            const API_BASE_URL = "https://generativelanguage.googleapis.com/v1beta/models/";
+
+            const MAX_HISTORY_ITEMS = 100;
+            const HISTORY_STORAGE_KEY = 'gradientStudioHistory_v2';
+            const HISTORY_THUMBNAIL_WIDTH = 160;
+            const HISTORY_THUMBNAIL_HEIGHT = 120;
+
+            const PREVIEW_BASE_WIDTH = 800;
+            const PREVIEW_BASE_HEIGHT = 600;
+
+            let lastGeneratedParams = null;
+            let currentRawAINatureImage = null; // Stores the raw 4:3 cropped image from API
+            let hasAttemptedGenerateWithoutKeyThisSession = false;
+            let activeTab = 'blobStudio';
+
+
+            // --- DOM Elements ---
+            const tabBlobStudioBtn = document.getElementById('tabBlobStudio');
+            const tabNatureBtn = document.getElementById('tabNature');
+            const blobStudioContent = document.getElementById('blobStudioContent');
+            const natureContent = document.getElementById('natureContent');
+
+            // Blob Studio controls
+            const colorInputs = [
+                document.getElementById('color1'), document.getElementById('color2'),
+                document.getElementById('color3'), document.getElementById('color4'),
+            ];
+            const numBlobsSelect = document.getElementById('numBlobsSelect');
+            const blurAmountSelect = document.getElementById('blurAmountSelect');
+            const grainLevelSelectBlob = document.getElementById('grainLevelSelectBlob');
+            const backgroundColorInput = document.getElementById('backgroundColor');
+            const generateBtnBlob = document.getElementById('generateBtnBlob');
+            const downloadOptionsBlobContainer = document.getElementById('downloadOptionsBlob');
+
+            // Nature Studio controls
+            const natureStyleSelect = document.getElementById('natureStyleSelect');
+            const natureBlurAmountSelect = document.getElementById('natureBlurAmountSelect');
+            const natureGrainLevelSelect = document.getElementById('natureGrainLevelSelect');
+            const generateBtnNature = document.getElementById('generateBtnNature');
+            const downloadOptionsNatureContainer = document.getElementById('downloadOptionsNature');
+
+            // Common elements
+            const previewCanvas = document.getElementById('previewCanvas');
+            const previewCtx = previewCanvas.getContext('2d');
+            const loadingMessage = document.getElementById('loadingMessage');
+            const historyContainer = document.getElementById('historyContainer');
+            const faviconElement = document.getElementById('favicon');
+            const faviconCanvas = document.getElementById('faviconCanvas'); // Hidden canvas for favicon
+            const faviconCtx = faviconCanvas.getContext('2d');
+            faviconCanvas.width = 32; faviconCanvas.height = 32;
+
+
+            // API Key Modal Elements
+            const apiKeyModal = document.getElementById('apiKeyModal');
+            const apiKeyInput = document.getElementById('apiKeyInput');
+            const saveApiKeyButton = document.getElementById('saveApiKeyButton');
+            const modalCloseButton = document.getElementById('modalCloseButton');
+            const modalMessageElement = document.getElementById('modalMessage');
+            const modalTitleElement = document.getElementById('modalTitle');
+
+            // Cropping Canvas for AI
+            const croppingCanvas = document.getElementById('croppingCanvas');
+            const cropCtx = croppingCanvas.getContext('2d');
+
+            // --- Initial Setup ---
+            previewCanvas.width = PREVIEW_BASE_WIDTH;
+            previewCanvas.height = PREVIEW_BASE_HEIGHT;
+            grainLevelSelectBlob.value = 'medium'; // Default
+            natureGrainLevelSelect.value = 'medium'; // Default
+
+            populateSelect(numBlobsSelect, 0, 100, 10);
+            populateSelect(blurAmountSelect, 0, 150, 50);
+            populateSelect(natureBlurAmountSelect, 0, 50, 5); // AI blur
+            setupDownloadButtons();
+
+
+            // --- Tab Switching ---
+            function switchTab(tabName) {
+                activeTab = tabName;
+                tabBlobStudioBtn.classList.toggle('active', tabName === 'blobStudio');
+                tabNatureBtn.classList.toggle('active', tabName === 'nature');
+                blobStudioContent.classList.toggle('active', tabName === 'blobStudio');
+                natureContent.classList.toggle('active', tabName === 'nature');
+                
+                // Attempt to load last generated for the new tab if available
+                if (lastGeneratedParams && lastGeneratedParams.type === activeTab) {
+                    if (activeTab === 'blobStudio') {
+                        displayBlobPreview(lastGeneratedParams);
+                    } else if (activeTab === 'nature' && currentRawAINatureImage) {
+                        // If switching back to nature and we have a raw image, reapply effects
+                         displayNaturePreviewFromRaw(currentRawAINatureImage, lastGeneratedParams.natureBlur, lastGeneratedParams.grainLevel);
+                    } else if (activeTab === 'nature' && !currentRawAINatureImage && lastGeneratedParams.rawImageDataBase64) {
+                         // If no currentRawAINatureImage but have base64 (e.g. from history restore)
+                        const img = new Image();
+                        img.onload = () => {
+                            currentRawAINatureImage = img;
+                            displayNaturePreviewFromRaw(currentRawAINatureImage, lastGeneratedParams.natureBlur, lastGeneratedParams.grainLevel);
+                        }
+                        img.src = lastGeneratedParams.rawImageDataBase64;
+                    } else {
+                        clearPreview(); // Or show a placeholder
+                    }
+                } else {
+                     clearPreview(); // If no relevant last params, clear.
+                }
+            }
+            tabBlobStudioBtn.addEventListener('click', () => switchTab('blobStudio'));
+            tabNatureBtn.addEventListener('click', () => switchTab('nature'));
+
+            function clearPreview() {
+                previewCtx.fillStyle = backgroundColorInput.value || '#0A0A0A'; // Use current bg or default
+                previewCtx.fillRect(0, 0, previewCanvas.width, previewCanvas.height);
+                updateFavicon();
+            }
+
+            // --- Dynamic Download Buttons ---
+            function setupDownloadButtons() {
+                const blobResolutions = [ {mp: 4, text: "download 4mp"}, {mp: 12, text: "12mp"}, {mp: 50, text: "50mp"}, {mp: 108, text: "108mp"}];
+                const natureResolutions = [ {mp: 2, text: "download 2mp"}, {mp: 4, text: "4mp"}, {mp: 12, text: "12mp"}, {mp: 16, text: "16mp"}];
+
+                downloadOptionsBlobContainer.innerHTML = '';
+                blobResolutions.forEach(res => {
+                    const btn = document.createElement('button');
+                    btn.textContent = res.text;
+                    btn.dataset.mp = res.mp;
+                    btn.addEventListener('click', () => handleDownload(res.mp));
+                    downloadOptionsBlobContainer.appendChild(btn);
+                });
+
+                downloadOptionsNatureContainer.innerHTML = '';
+                natureResolutions.forEach(res => {
+                    const btn = document.createElement('button');
+                    btn.textContent = res.text;
+                    btn.dataset.mp = res.mp;
+                    btn.addEventListener('click', () => handleDownload(res.mp));
+                    downloadOptionsNatureContainer.appendChild(btn);
+                });
+            }
+
+
+            // --- UI Helper Functions ---
+            function populateSelect(selectElement, start, end, defaultValue, step = 1) {
+                for (let i = start; i <= end; i += step) {
+                    const option = document.createElement('option');
+                    option.value = i;
+                    option.textContent = i.toString(); // Already lowercase due to global CSS
+                    if (i === defaultValue) {
+                        option.selected = true;
+                    }
+                    selectElement.appendChild(option);
+                }
+            }
+
+            function setLoadingState(isLoading) {
+                loadingMessage.style.display = isLoading ? 'flex' : 'none';
+                
+                const allControls = document.querySelectorAll('input, select, button');
+                allControls.forEach(control => control.disabled = isLoading);
+            }
+
+            function updateFavicon() {
+                faviconCtx.clearRect(0, 0, 32, 32);
+                // Create a circular clip
+                faviconCtx.save();
+                faviconCtx.beginPath();
+                faviconCtx.arc(16, 16, 16, 0, Math.PI * 2, true);
+                faviconCtx.closePath();
+                faviconCtx.clip();
+                // Draw the scaled previewCanvas content
+                faviconCtx.drawImage(previewCanvas, 0, 0, 32, 32);
+                faviconCtx.restore(); // Restore to remove the clip for future drawings
+                faviconElement.href = faviconCanvas.toDataURL('image/png');
+            }
+
+            // --- Blob Studio Logic ---
+            function getSelectedColors() {
+                return colorInputs.map(input => input.value).filter(color => color);
+            }
+
+            function drawBlobs(ctx, width, height, bgColor, colors, numBlobs, blurAmountSetting, existingBlobData = null) {
+                ctx.clearRect(0, 0, width, height);
+                ctx.fillStyle = bgColor;
+                ctx.fillRect(0, 0, width, height);
+
+                let scaledBlur = blurAmountSetting * (Math.min(width, height) / Math.min(PREVIEW_BASE_WIDTH, PREVIEW_BASE_HEIGHT));
+                const maxSensibleBlurRadius = Math.min(width, height) * 0.4; 
+                scaledBlur = Math.min(scaledBlur, maxSensibleBlurRadius);
+                
+                if (scaledBlur > 0) ctx.filter = `blur(${scaledBlur}px)`;
+                
+                let blobDataToStore = [];
+                const actualNumBlobs = Math.max(0, parseInt(numBlobs) || 0);
+
+                for (let i = 0; i < actualNumBlobs; i++) {
+                    let x, y, rOuter, colorHex, opacity;
+                    if (existingBlobData && existingBlobData[i]) {
+                        const bd = existingBlobData[i];
+                        x = bd.x * width; y = bd.y * height;
+                        rOuter = bd.rOuter * Math.min(width, height);
+                        colorHex = bd.colorHex; opacity = bd.opacity;
+                    } else {
+                        x = Math.random() * width; y = Math.random() * height;
+                        rOuter = (Math.random() * 0.3 + 0.15) * Math.min(width, height); 
+                        colorHex = colors.length > 0 ? colors[Math.floor(Math.random() * colors.length)] : '#CCCCCC'; 
+                        opacity = 0.6 + Math.random() * 0.4; 
+                        blobDataToStore.push({ x: x / width, y: y / height, rOuter: rOuter / Math.min(width, height), colorHex, opacity });
+                    }
+                    const r = parseInt(colorHex.slice(1, 3), 16), g = parseInt(colorHex.slice(3, 5), 16), b = parseInt(colorHex.slice(5, 7), 16);
+                    const gradient = ctx.createRadialGradient(x, y, 0, x, y, rOuter);
+                    gradient.addColorStop(0, `rgba(${r},${g},${b},${opacity})`);
+                    gradient.addColorStop(0.7, `rgba(${r},${g},${b},${opacity * 0.3})`);
+                    gradient.addColorStop(1, `rgba(${r},${g},${b},0)`);
+                    ctx.fillStyle = gradient; ctx.beginPath(); ctx.arc(x, y, rOuter, 0, 2 * Math.PI); ctx.fill();
+                }
+                if (scaledBlur > 0) ctx.filter = 'none'; 
+                return existingBlobData ? existingBlobData : blobDataToStore;
+            }
+
+            function generateAndDisplayBlobPreview() {
+                let colors = getSelectedColors();
+                if (colors.length === 0) colors = [document.getElementById('color1').value || "#CCCCCC"]; 
+                const numBlobs = parseInt(numBlobsSelect.value);
+                const grainLevel = grainLevelSelectBlob.value;
+                const blur = parseInt(blurAmountSelect.value);
+                const bgColor = backgroundColorInput.value;
+
+                const currentBlobData = drawBlobs(previewCtx, PREVIEW_BASE_WIDTH, PREVIEW_BASE_HEIGHT, bgColor, colors, numBlobs, blur);
+                applyGrain(previewCtx, PREVIEW_BASE_WIDTH, PREVIEW_BASE_HEIGHT, grainLevel);
+                
+                lastGeneratedParams = { 
+                    type: 'blobStudio', colors, numBlobs, grainLevel, blur, bgColor, 
+                    blobData: currentBlobData, timestamp: Date.now() 
+                };
+                saveToHistory(lastGeneratedParams);
+                updateFavicon();
+            }
+            
+            function displayBlobPreview(params) {
+                 drawBlobs(previewCtx, PREVIEW_BASE_WIDTH, PREVIEW_BASE_HEIGHT, 
+                          params.bgColor, params.colors, 
+                          params.numBlobs, params.blur, 
+                          params.blobData);
+                applyGrain(previewCtx, PREVIEW_BASE_WIDTH, PREVIEW_BASE_HEIGHT, params.grainLevel);
+                updateFavicon();
+            }
+
+            // --- "Inspired by Nature" (AI) Logic ---
+            function getNaturePrompt() {
+                const style = natureStyleSelect.value;
+                if (style === 'flower') return FIXED_PROMPT_FLOWER;
+                if (style === 'sun') return FIXED_PROMPT_SUN;
+                if (style === 'fractal') return FIXED_PROMPT_FRACTAL;
+                return FIXED_PROMPT_FLOWER; // Default
+            }
+
+            async function generateAndDisplayNaturePreview() {
+                const apiKey = localStorage.getItem(API_KEY_STORAGE_KEY);
+                if (!apiKey) {
+                    if (!hasAttemptedGenerateWithoutKeyThisSession) {
+                        showApiKeyModal("this tool requires an api key to work. please enter it below:", "api key required");
+                        hasAttemptedGenerateWithoutKeyThisSession = true;
+                    } else {
+                        showApiKeyModal("api key is still required. please enter your key to proceed.", "api key required");
+                    }
+                    return;
+                }
+
+                setLoadingState(true);
+                currentRawAINatureImage = null; // Clear previous raw image
+
+                const prompt = getNaturePrompt();
+                const endpoint = `${API_BASE_URL}${MODEL_NAME_TO_USE}:generateContent?key=${apiKey}`;
+                const requestBody = {
+                    contents: [{ parts: [{ text: prompt }] }],
+                    generationConfig: { responseModalities: ["TEXT", "IMAGE"] }
+                };
+
+                try {
+                    const response = await fetch(endpoint, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(requestBody)
+                    });
+
+                    if (!response.ok) {
+                        let errorData; try { errorData = await response.json(); } catch (e) { /* ignore */ }
+                        const apiErrorMsg = errorData?.error?.message || `http ${response.status}: ${response.statusText}`;
+                        throw new Error(`api error (${response.status}): ${apiErrorMsg}`);
+                    }
+                    const jsonResponse = await response.json();
+                    if (!jsonResponse.candidates?.[0]?.content?.parts) {
+                        let msg = "invalid api response structure.";
+                        if (jsonResponse.promptFeedback?.blockReason) msg += ` prompt blocked: ${jsonResponse.promptFeedback.blockReason}`;
+                        throw new Error(msg);
+                    }
+                    const imgPart = jsonResponse.candidates[0].content.parts.find(p => p.inlineData?.data);
+                    if (!imgPart) {
+                        const textPart = jsonResponse.candidates[0].content.parts.find(p => p.text);
+                        throw new Error(`no image data. model text: "${textPart?.text || 'n/a'}"`);
+                    }
+                    
+                    const { data: imageDataBase64, mimeType: imageMimeType } = imgPart.inlineData;
+                    const fullImageSrc = `data:${imageMimeType};base64,${imageDataBase64}`;
+                    
+                    const tempImg = new Image();
+                    tempImg.onload = () => {
+                        // Crop to 4:3
+                        const originalWidth = tempImg.naturalWidth;
+                        const originalHeight = tempImg.naturalHeight;
+                        const targetAspectRatio = 4 / 3;
+                        let sx = 0, sy = 0, sWidth = originalWidth, sHeight = originalHeight;
+
+                        if (originalWidth / originalHeight > targetAspectRatio) { 
+                            sWidth = originalHeight * targetAspectRatio; sx = (originalWidth - sWidth) / 2;
+                        } else if (originalWidth / originalHeight < targetAspectRatio) { 
+                            sHeight = originalWidth / targetAspectRatio; sy = (originalHeight - sHeight) / 2;
+                        }
+                        
+                        croppingCanvas.width = sWidth; croppingCanvas.height = sHeight;
+                        cropCtx.drawImage(tempImg, sx, sy, sWidth, sHeight, 0, 0, sWidth, sHeight);
+                        
+                        // Store the cropped image as an Image object and its base64 for history
+                        currentRawAINatureImage = new Image();
+                        currentRawAINatureImage.onload = () => {
+                             // Now that raw image is loaded, apply effects and display
+                            const natureBlur = parseInt(natureBlurAmountSelect.value);
+                            const grainLevel = natureGrainLevelSelect.value;
+                            displayNaturePreviewFromRaw(currentRawAINatureImage, natureBlur, grainLevel);
+
+                            lastGeneratedParams = {
+                                type: 'nature',
+                                style: natureStyleSelect.value,
+                                natureBlur: natureBlur,
+                                grainLevel: grainLevel,
+                                rawImageDataBase64: croppingCanvas.toDataURL(imageMimeType || 'image/png'), // Store base64 for history
+                                timestamp: Date.now()
+                            };
+                            saveToHistory(lastGeneratedParams);
+                        };
+                        currentRawAINatureImage.src = croppingCanvas.toDataURL(imageMimeType || 'image/png');
+                    };
+                    tempImg.onerror = () => { throw new Error("failed to load generated image data for processing."); };
+                    tempImg.src = fullImageSrc;
+
+                } catch (error) {
+                    console.error("error generating ai image:", error);
+                    let errorMessage = error.message || "unknown error.";
+                    if (errorMessage.toLowerCase().includes("api key") || errorMessage.toLowerCase().includes("api_key_not_valid") || errorMessage.includes("403") || errorMessage.includes("permissiondenied")) {
+                        errorMessage = "api key invalid or permissions issue. check key & google cloud project.";
+                        localStorage.removeItem(API_KEY_STORAGE_KEY); 
+                        hasAttemptedGenerateWithoutKeyThisSession = false; 
+                        showApiKeyModal(errorMessage, "invalid api key");
+                    } else if (errorMessage.toLowerCase().includes("model") || errorMessage.includes("404")) {
+                        errorMessage = `model error or not found: ${MODEL_NAME_TO_USE}.`;
+                    }
+                    alert(`error: ${errorMessage}`); // Simple alert for now
+                } finally {
+                    setLoadingState(false);
+                }
+            }
+            
+            function displayNaturePreviewFromRaw(rawImage, blurAmount, grainLevel) {
+                if (!rawImage || !rawImage.complete || rawImage.naturalWidth === 0) {
+                    console.warn("raw ai image not ready for displaynaturepreviewfromraw");
+                    clearPreview();
+                    return;
+                }
+                previewCtx.clearRect(0,0, PREVIEW_BASE_WIDTH, PREVIEW_BASE_HEIGHT);
+                previewCtx.drawImage(rawImage, 0, 0, PREVIEW_BASE_WIDTH, PREVIEW_BASE_HEIGHT);
+
+                if (blurAmount > 0) {
+                    previewCtx.filter = `blur(${blurAmount}px)`;
+                    // Draw again to apply blur. Could use an offscreen canvas for perf.
+                    previewCtx.drawImage(previewCanvas, 0, 0); 
+                    previewCtx.filter = 'none';
+                }
+                applyGrain(previewCtx, PREVIEW_BASE_WIDTH, PREVIEW_BASE_HEIGHT, grainLevel);
+                updateFavicon();
+            }
+
+            // Re-apply effects if AI controls change without new generation
+            function handleNatureControlsChange() {
+                if (activeTab === 'nature' && currentRawAINatureImage && lastGeneratedParams && lastGeneratedParams.type === 'nature') {
+                    const natureBlur = parseInt(natureBlurAmountSelect.value);
+                    const grainLevel = natureGrainLevelSelect.value;
+                    displayNaturePreviewFromRaw(currentRawAINatureImage, natureBlur, grainLevel);
+                    // Update lastGeneratedParams for potential download
+                    lastGeneratedParams.natureBlur = natureBlur;
+                    lastGeneratedParams.grainLevel = grainLevel;
+                }
+            }
+            natureBlurAmountSelect.addEventListener('change', handleNatureControlsChange);
+            natureGrainLevelSelect.addEventListener('change', handleNatureControlsChange);
+            natureStyleSelect.addEventListener('change', () => { 
+                currentRawAINatureImage = null; // Changing style requires new generation
+                clearPreview();
+            });
+
+
+            // --- Common Drawing Utilities ---
+            function applyGrain(ctx, canvasWidth, canvasHeight, grainLevelSetting) {
+                if (grainLevelSetting === 'none') return;
+                let baseIntensity;
+                switch (grainLevelSetting) {
+                    case 'light': baseIntensity = 10; break; case 'medium': baseIntensity = 20; break;
+                    case 'high': baseIntensity = 35; break; case 'superheavy': baseIntensity = 55; break;
+                    default: return;
+                }
+                baseIntensity = Math.min(baseIntensity, 75); 
+                if (baseIntensity === 0) return;
+
+                const imageData = ctx.getImageData(0, 0, canvasWidth, canvasHeight);
+                const pixels = imageData.data;
+                let blockDimension = 1;
+                if (canvasWidth > PREVIEW_BASE_WIDTH || canvasHeight > PREVIEW_BASE_HEIGHT) {
+                    const scaleFactor = Math.max(1, Math.round(Math.min(canvasWidth / PREVIEW_BASE_WIDTH, canvasHeight / PREVIEW_BASE_HEIGHT)));
+                    blockDimension = scaleFactor;
+                }
+                blockDimension = Math.min(blockDimension, 8); 
+
+                for (let y = 0; y < canvasHeight; y += blockDimension) {
+                    for (let x = 0; x < canvasWidth; x += blockDimension) {
+                        const noise = Math.floor(Math.random() * baseIntensity * 2) - baseIntensity;
+                        for (let blockY = 0; blockY < blockDimension && (y + blockY) < canvasHeight; blockY++) {
+                            for (let blockX = 0; blockX < blockDimension && (x + blockX) < canvasWidth; blockX++) {
+                                const i = ((y + blockY) * canvasWidth + (x + blockX)) * 4;
+                                if (pixels[i + 3] > 0) { 
+                                    pixels[i] = Math.max(0, Math.min(255, pixels[i] + noise));
+                                    pixels[i + 1] = Math.max(0, Math.min(255, pixels[i + 1] + noise));
+                                    pixels[i + 2] = Math.max(0, Math.min(255, pixels[i + 2] + noise));
+                                }
+                            }
+                        }
+                    }
+                }
+                ctx.putImageData(imageData, 0, 0);
+            }
+            
+            // --- Download Logic ---
+            function calculateDimensions(megapixels) {
+                const totalPixels = megapixels * 1000000;
+                let H = Math.sqrt(totalPixels * 3 / 4);
+                let W = (4 / 3) * H;
+                return { width: Math.round(W), height: Math.round(H) };
+            }
+
+            async function handleDownload(megapixels) {
+                if (!lastGeneratedParams) {
+                    alert("please generate something first!"); return;
+                }
+                if (lastGeneratedParams.type !== activeTab) {
+                    alert("please generate an image in the current tab or restore from history first."); return;
+                }
+
+                setLoadingState(true);
+                await new Promise(resolve => setTimeout(resolve, 100)); // Give UI time to update loader
+
+                const { width, height } = calculateDimensions(megapixels);
+                const offscreenCanvas = document.createElement('canvas');
+                offscreenCanvas.width = width; offscreenCanvas.height = height;
+                const offscreenCtx = offscreenCanvas.getContext('2d');
+
+                if (lastGeneratedParams.type === 'blobStudio') {
+                    const { colors, numBlobs, blur, bgColor, blobData, grainLevel } = lastGeneratedParams;
+                    drawBlobs(offscreenCtx, width, height, bgColor, colors, numBlobs, blur, blobData);
+                    applyGrain(offscreenCtx, width, height, grainLevel);
+                } else if (lastGeneratedParams.type === 'nature') {
+                    if (!currentRawAINatureImage && lastGeneratedParams.rawImageDataBase64) { // Ensure raw image is loaded if needed
+                        const imgToLoad = new Image();
+                        imgToLoad.src = lastGeneratedParams.rawImageDataBase64;
+                        await new Promise(resolve => { imgToLoad.onload = resolve; });
+                        currentRawAINatureImage = imgToLoad; // Update global if it was missing
+                    }
+
+                    if (!currentRawAINatureImage || !currentRawAINatureImage.complete || currentRawAINatureImage.naturalWidth === 0) {
+                        alert("error: ai source image not available for download. please try generating again.");
+                        setLoadingState(false);
+                        return;
+                    }
+                    // Draw raw AI image scaled to target download resolution
+                    offscreenCtx.drawImage(currentRawAINatureImage, 0, 0, width, height);
+                    
+                    // Apply blur if any
+                    if (lastGeneratedParams.natureBlur > 0) {
+                        // Scale blur amount for the larger canvas. This is an approximation.
+                        // A more accurate scaling might involve the ratio of pixel areas or a fixed pixel blur for visual consistency.
+                        // For simplicity, let's scale linearly with width (or average dimension).
+                        const blurScaleFactor = width / PREVIEW_BASE_WIDTH;
+                        const scaledNatureBlur = lastGeneratedParams.natureBlur * blurScaleFactor;
+
+                        offscreenCtx.filter = `blur(${Math.min(scaledNatureBlur, Math.min(width,height)*0.1)}px)`; // Cap blur
+                        offscreenCtx.drawImage(offscreenCanvas, 0, 0); // Apply blur by redrawing
+                        offscreenCtx.filter = 'none';
+                    }
+                    applyGrain(offscreenCtx, width, height, lastGeneratedParams.grainLevel);
+                }
+
+                offscreenCanvas.toBlob((blob) => {
+                    if (blob) {
+                        const link = document.createElement('a');
+                        link.href = URL.createObjectURL(blob);
+                        link.download = `${lastGeneratedParams.type}_gradient_${megapixels}mp_${Date.now()}.png`;
+                        document.body.appendChild(link); link.click(); document.body.removeChild(link);
+                        URL.revokeObjectURL(link.href);
+                    } else {
+                        alert(`error generating download. resolution ${megapixels}mp (${width}x${height}) might be too large.`);
+                    }
+                    setLoadingState(false);
+                }, 'image/png', 0.95); 
+            }
+
+            // --- API Key Modal Logic ---
+            modalCloseButton.onclick = () => { apiKeyModal.style.display = "none"; };
+            apiKeyModal.onclick = function(event) { if (event.target == apiKeyModal) apiKeyModal.style.display = "none"; };
+
+            function showApiKeyModal(message, title = "api key required") {
+                modalTitleElement.textContent = title;
+                modalMessageElement.textContent = message;
+                apiKeyInput.value = localStorage.getItem(API_KEY_STORAGE_KEY) || '';
+                apiKeyModal.style.display = "block";
+                apiKeyInput.focus();
+            }
+            function saveApiKeyAndAttemptGenerate() {
+                const key = apiKeyInput.value.trim();
+                if (key) {
+                    localStorage.setItem(API_KEY_STORAGE_KEY, key);
+                    apiKeyModal.style.display = "none";
+                    // Attempt to generate if in Nature tab
+                    if (activeTab === 'nature') {
+                         generateAndDisplayNaturePreview();
+                    }
+                } else {
+                    modalMessageElement.textContent = "please enter a valid api key.";
+                }
+            }
+
+            // --- History Functions ---
+            function loadHistory() {
+                const historyJSON = localStorage.getItem(HISTORY_STORAGE_KEY);
+                return historyJSON ? JSON.parse(historyJSON) : [];
+            }
+            function saveToHistory(paramsToSave) {
+                let history = loadHistory();
+                history.unshift(JSON.parse(JSON.stringify(paramsToSave)));
+                if (history.length > MAX_HISTORY_ITEMS) history = history.slice(0, MAX_HISTORY_ITEMS);
+                localStorage.setItem(HISTORY_STORAGE_KEY, JSON.stringify(history));
+                renderHistory();
+            }
+            function renderHistory() {
+                const history = loadHistory();
+                historyContainer.innerHTML = ''; 
+
+                history.forEach((itemParams) => {
+                    const historyItemDiv = document.createElement('div');
+                    historyItemDiv.classList.add('history-item');
+                    const canvas = document.createElement('canvas');
+                    canvas.width = HISTORY_THUMBNAIL_WIDTH; canvas.height = HISTORY_THUMBNAIL_HEIGHT;
+                    const ctx = canvas.getContext('2d');
+
+                    if (itemParams.type === 'blobStudio' && itemParams.blobData) {
+                        drawBlobs(ctx, canvas.width, canvas.height, itemParams.bgColor, itemParams.colors, itemParams.numBlobs, itemParams.blur, itemParams.blobData);
+                        applyGrain(ctx, canvas.width, canvas.height, itemParams.grainLevel); 
+                    } else if (itemParams.type === 'nature' && itemParams.rawImageDataBase64) {
+                        const img = new Image();
+                        img.onload = () => {
+                            ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                            if (itemParams.natureBlur > 0) {
+                                ctx.filter = `blur(${itemParams.natureBlur * (canvas.width/PREVIEW_BASE_WIDTH)}px)`; // Approx scaled blur for thumb
+                                ctx.drawImage(canvas,0,0);
+                                ctx.filter = 'none';
+                            }
+                            applyGrain(ctx, canvas.width, canvas.height, itemParams.grainLevel);
+                        }
+                        img.src = itemParams.rawImageDataBase64;
+                    } else {
+                        ctx.fillStyle = itemParams.bgColor || '#333'; ctx.fillRect(0,0,canvas.width, canvas.height);
+                        ctx.fillStyle = '#fff'; ctx.fillText('no preview', 10, 20);
+                    }
+                    
+                    const restoreOverlay = document.createElement('div');
+                    restoreOverlay.classList.add('restore-overlay'); restoreOverlay.textContent = 'restore';
+                    historyItemDiv.appendChild(canvas); historyItemDiv.appendChild(restoreOverlay);
+                    historyItemDiv.addEventListener('click', () => restoreFromHistory(itemParams));
+                    historyContainer.appendChild(historyItemDiv);
+                });
+            }
+            function restoreFromHistory(paramsToRestore) {
+                lastGeneratedParams = JSON.parse(JSON.stringify(paramsToRestore)); // Deep copy
+                switchTab(paramsToRestore.type); // Switch to the correct tab
+
+                if (paramsToRestore.type === 'blobStudio') {
+                    paramsToRestore.colors.forEach((color, i) => { if (colorInputs[i]) colorInputs[i].value = color; });
+                    for (let i = paramsToRestore.colors.length; i < colorInputs.length; i++) colorInputs[i].value = '#000000';
+                    numBlobsSelect.value = paramsToRestore.numBlobs;
+                    blurAmountSelect.value = paramsToRestore.blur;
+                    grainLevelSelectBlob.value = paramsToRestore.grainLevel;
+                    backgroundColorInput.value = paramsToRestore.bgColor;
+                    displayBlobPreview(paramsToRestore);
+                } else if (paramsToRestore.type === 'nature') {
+                    natureStyleSelect.value = paramsToRestore.style;
+                    natureBlurAmountSelect.value = paramsToRestore.natureBlur;
+                    natureGrainLevelSelect.value = paramsToRestore.grainLevel;
+                    
+                    currentRawAINatureImage = new Image(); // Prepare to load
+                    currentRawAINatureImage.onload = () => {
+                        displayNaturePreviewFromRaw(currentRawAINatureImage, paramsToRestore.natureBlur, paramsToRestore.grainLevel);
+                    };
+                    currentRawAINatureImage.src = paramsToRestore.rawImageDataBase64;
+                }
+            }
+
+            // --- Event Listeners ---
+            generateBtnBlob.addEventListener('click', generateAndDisplayBlobPreview);
+            generateBtnNature.addEventListener('click', generateAndDisplayNaturePreview);
+            saveApiKeyButton.addEventListener('click', saveApiKeyAndAttemptGenerate);
+
+
+            // --- Initial Load Actions ---
+            renderHistory();
+            // Default to Blob Studio view and generate initial preview
+            switchTab('blobStudio'); // Set blobStudio as default active tab
+            generateAndDisplayBlobPreview(); 
+        });
+    </script>
+</body>
+</html>
