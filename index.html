@@ -403,6 +403,7 @@
                         <option value="flower">flower gradients</option>
                         <option value="sun">sun gradients</option>
                         <option value="fractal">fractal gradients</option>
+                        <option value="crystal">crystal gradients</option> {/* <!-- NEW OPTION --> */}
                     </select>
                 </div>
                 <div class="control-group">
@@ -438,7 +439,7 @@
     <!-- API Key Modal -->
     <div id="apiKeyModal">
         <div id="apiKeyModalContent">
-            <span id="modalCloseButton">×</span>
+            <span id="modalCloseButton">&times;</span>
             <h4 id="modalTitle">api key required</h4>
             <p id="modalMessage">enter your api key:</p>
             <input type="text" id="apiKeyInput" placeholder="your api key">
@@ -464,6 +465,7 @@
             const FIXED_PROMPT_FLOWER = "generate a 4:3 wide aspect ratio image of an abstract macro photograph of a flower in the style of a mid-century color field painting, hazy, out of focus.";
             const FIXED_PROMPT_SUN = "generate an image of a 4:3 wide aspect ratio photograph bright yellow and orange and red hazy image of a lens flare, out of focus, varied contours, vivid, brilliant, optimistic, sun flare. not too intense, natural looking.";
             const FIXED_PROMPT_FRACTAL = "generate an image of a 4:3 wide aspect ratio photograph of a fractal pattern from nature represented as a gradient. for example, glowing lightning, lush deep ferns, turquoise rivers flowing through a desert. it should be out of focus, soft and yet hinting at a deeper complexity.";
+            const FIXED_PROMPT_CRYSTAL = "generate an image of a 4:3 wide aspect ratio abstract macro photograph of crystal formations, refracting light, geometric facets, vibrant and designable colors, sharp yet soft edges, soft focus photograph."; // <!-- NEW PROMPT -->
             
             const API_KEY_STORAGE_KEY = 'geminiApiKey_gradientStudio';
             const MODEL_NAME_TO_USE = "gemini-2.0-flash-preview-image-generation"; 
@@ -536,6 +538,7 @@
             previewCanvas.height = PREVIEW_BASE_HEIGHT;
             grainLevelSelectBlob.value = 'medium'; // Default
             natureGrainLevelSelect.value = 'medium'; // Default
+            natureStyleSelect.value = 'flower'; // Default for nature tab
 
             populateSelect(numBlobsSelect, 0, 100, 10);
             populateSelect(blurAmountSelect, 0, 150, 50);
@@ -551,15 +554,12 @@
                 blobStudioContent.classList.toggle('active', tabName === 'blobStudio');
                 natureContent.classList.toggle('active', tabName === 'nature');
                 
-                // Attempt to load last generated for the new tab if available
                 if (lastGeneratedParams && lastGeneratedParams.type === activeTab) {
                     if (activeTab === 'blobStudio') {
                         displayBlobPreview(lastGeneratedParams);
                     } else if (activeTab === 'nature' && currentRawAINatureImage) {
-                        // If switching back to nature and we have a raw image, reapply effects
                          displayNaturePreviewFromRaw(currentRawAINatureImage, lastGeneratedParams.natureBlur, lastGeneratedParams.grainLevel);
                     } else if (activeTab === 'nature' && !currentRawAINatureImage && lastGeneratedParams.rawImageDataBase64) {
-                         // If no currentRawAINatureImage but have base64 (e.g. from history restore)
                         const img = new Image();
                         img.onload = () => {
                             currentRawAINatureImage = img;
@@ -567,17 +567,17 @@
                         }
                         img.src = lastGeneratedParams.rawImageDataBase64;
                     } else {
-                        clearPreview(); // Or show a placeholder
+                        clearPreview(); 
                     }
                 } else {
-                     clearPreview(); // If no relevant last params, clear.
+                     clearPreview(); 
                 }
             }
             tabBlobStudioBtn.addEventListener('click', () => switchTab('blobStudio'));
             tabNatureBtn.addEventListener('click', () => switchTab('nature'));
 
             function clearPreview() {
-                previewCtx.fillStyle = backgroundColorInput.value || '#0A0A0A'; // Use current bg or default
+                previewCtx.fillStyle = backgroundColorInput.value || '#0A0A0A'; 
                 previewCtx.fillRect(0, 0, previewCanvas.width, previewCanvas.height);
                 updateFavicon();
             }
@@ -612,7 +612,7 @@
                 for (let i = start; i <= end; i += step) {
                     const option = document.createElement('option');
                     option.value = i;
-                    option.textContent = i.toString(); // Already lowercase due to global CSS
+                    option.textContent = i.toString(); 
                     if (i === defaultValue) {
                         option.selected = true;
                     }
@@ -627,17 +627,31 @@
                 allControls.forEach(control => control.disabled = isLoading);
             }
 
+            function drawRoundedRect(ctx, x, y, width, height, radius) {
+                ctx.beginPath();
+                ctx.moveTo(x + radius, y);
+                ctx.lineTo(x + width - radius, y);
+                ctx.quadraticCurveTo(x + width, y, x + width, y + radius);
+                ctx.lineTo(x + width, y + height - radius);
+                ctx.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
+                ctx.lineTo(x + radius, y + height);
+                ctx.quadraticCurveTo(x, y + height, x, y + height - radius);
+                ctx.lineTo(x, y + radius);
+                ctx.quadraticCurveTo(x, y, x + radius, y);
+                ctx.closePath();
+            }
+
             function updateFavicon() {
-                faviconCtx.clearRect(0, 0, 32, 32);
-                // Create a circular clip
+                const favWidth = 32;
+                const favHeight = 32;
+                const favRadius = 6; // Radius for rounded square
+
+                faviconCtx.clearRect(0, 0, favWidth, favHeight);
                 faviconCtx.save();
-                faviconCtx.beginPath();
-                faviconCtx.arc(16, 16, 16, 0, Math.PI * 2, true);
-                faviconCtx.closePath();
+                drawRoundedRect(faviconCtx, 0, 0, favWidth, favHeight, favRadius); // Use helper
                 faviconCtx.clip();
-                // Draw the scaled previewCanvas content
-                faviconCtx.drawImage(previewCanvas, 0, 0, 32, 32);
-                faviconCtx.restore(); // Restore to remove the clip for future drawings
+                faviconCtx.drawImage(previewCanvas, 0, 0, favWidth, favHeight);
+                faviconCtx.restore(); 
                 faviconElement.href = faviconCanvas.toDataURL('image/png');
             }
 
@@ -719,6 +733,7 @@
                 if (style === 'flower') return FIXED_PROMPT_FLOWER;
                 if (style === 'sun') return FIXED_PROMPT_SUN;
                 if (style === 'fractal') return FIXED_PROMPT_FRACTAL;
+                if (style === 'crystal') return FIXED_PROMPT_CRYSTAL; // <!-- NEW PROMPT CASE -->
                 return FIXED_PROMPT_FLOWER; // Default
             }
 
@@ -735,7 +750,7 @@
                 }
 
                 setLoadingState(true);
-                currentRawAINatureImage = null; // Clear previous raw image
+                currentRawAINatureImage = null; 
 
                 const prompt = getNaturePrompt();
                 const endpoint = `${API_BASE_URL}${MODEL_NAME_TO_USE}:generateContent?key=${apiKey}`;
@@ -773,7 +788,6 @@
                     
                     const tempImg = new Image();
                     tempImg.onload = () => {
-                        // Crop to 4:3
                         const originalWidth = tempImg.naturalWidth;
                         const originalHeight = tempImg.naturalHeight;
                         const targetAspectRatio = 4 / 3;
@@ -788,10 +802,8 @@
                         croppingCanvas.width = sWidth; croppingCanvas.height = sHeight;
                         cropCtx.drawImage(tempImg, sx, sy, sWidth, sHeight, 0, 0, sWidth, sHeight);
                         
-                        // Store the cropped image as an Image object and its base64 for history
                         currentRawAINatureImage = new Image();
                         currentRawAINatureImage.onload = () => {
-                             // Now that raw image is loaded, apply effects and display
                             const natureBlur = parseInt(natureBlurAmountSelect.value);
                             const grainLevel = natureGrainLevelSelect.value;
                             displayNaturePreviewFromRaw(currentRawAINatureImage, natureBlur, grainLevel);
@@ -801,7 +813,7 @@
                                 style: natureStyleSelect.value,
                                 natureBlur: natureBlur,
                                 grainLevel: grainLevel,
-                                rawImageDataBase64: croppingCanvas.toDataURL(imageMimeType || 'image/png'), // Store base64 for history
+                                rawImageDataBase64: croppingCanvas.toDataURL(imageMimeType || 'image/png'), 
                                 timestamp: Date.now()
                             };
                             saveToHistory(lastGeneratedParams);
@@ -822,7 +834,7 @@
                     } else if (errorMessage.toLowerCase().includes("model") || errorMessage.includes("404")) {
                         errorMessage = `model error or not found: ${MODEL_NAME_TO_USE}.`;
                     }
-                    alert(`error: ${errorMessage}`); // Simple alert for now
+                    alert(`error: ${errorMessage}`); 
                 } finally {
                     setLoadingState(false);
                 }
@@ -839,7 +851,6 @@
 
                 if (blurAmount > 0) {
                     previewCtx.filter = `blur(${blurAmount}px)`;
-                    // Draw again to apply blur. Could use an offscreen canvas for perf.
                     previewCtx.drawImage(previewCanvas, 0, 0); 
                     previewCtx.filter = 'none';
                 }
@@ -847,13 +858,11 @@
                 updateFavicon();
             }
 
-            // Re-apply effects if AI controls change without new generation
             function handleNatureControlsChange() {
                 if (activeTab === 'nature' && currentRawAINatureImage && lastGeneratedParams && lastGeneratedParams.type === 'nature') {
                     const natureBlur = parseInt(natureBlurAmountSelect.value);
                     const grainLevel = natureGrainLevelSelect.value;
                     displayNaturePreviewFromRaw(currentRawAINatureImage, natureBlur, grainLevel);
-                    // Update lastGeneratedParams for potential download
                     lastGeneratedParams.natureBlur = natureBlur;
                     lastGeneratedParams.grainLevel = grainLevel;
                 }
@@ -861,7 +870,7 @@
             natureBlurAmountSelect.addEventListener('change', handleNatureControlsChange);
             natureGrainLevelSelect.addEventListener('change', handleNatureControlsChange);
             natureStyleSelect.addEventListener('change', () => { 
-                currentRawAINatureImage = null; // Changing style requires new generation
+                currentRawAINatureImage = null; 
                 clearPreview();
             });
 
@@ -922,7 +931,7 @@
                 }
 
                 setLoadingState(true);
-                await new Promise(resolve => setTimeout(resolve, 100)); // Give UI time to update loader
+                await new Promise(resolve => setTimeout(resolve, 100)); 
 
                 const { width, height } = calculateDimensions(megapixels);
                 const offscreenCanvas = document.createElement('canvas');
@@ -934,11 +943,11 @@
                     drawBlobs(offscreenCtx, width, height, bgColor, colors, numBlobs, blur, blobData);
                     applyGrain(offscreenCtx, width, height, grainLevel);
                 } else if (lastGeneratedParams.type === 'nature') {
-                    if (!currentRawAINatureImage && lastGeneratedParams.rawImageDataBase64) { // Ensure raw image is loaded if needed
+                    if (!currentRawAINatureImage && lastGeneratedParams.rawImageDataBase64) { 
                         const imgToLoad = new Image();
                         imgToLoad.src = lastGeneratedParams.rawImageDataBase64;
                         await new Promise(resolve => { imgToLoad.onload = resolve; });
-                        currentRawAINatureImage = imgToLoad; // Update global if it was missing
+                        currentRawAINatureImage = imgToLoad; 
                     }
 
                     if (!currentRawAINatureImage || !currentRawAINatureImage.complete || currentRawAINatureImage.naturalWidth === 0) {
@@ -946,19 +955,13 @@
                         setLoadingState(false);
                         return;
                     }
-                    // Draw raw AI image scaled to target download resolution
                     offscreenCtx.drawImage(currentRawAINatureImage, 0, 0, width, height);
                     
-                    // Apply blur if any
                     if (lastGeneratedParams.natureBlur > 0) {
-                        // Scale blur amount for the larger canvas. This is an approximation.
-                        // A more accurate scaling might involve the ratio of pixel areas or a fixed pixel blur for visual consistency.
-                        // For simplicity, let's scale linearly with width (or average dimension).
                         const blurScaleFactor = width / PREVIEW_BASE_WIDTH;
                         const scaledNatureBlur = lastGeneratedParams.natureBlur * blurScaleFactor;
-
-                        offscreenCtx.filter = `blur(${Math.min(scaledNatureBlur, Math.min(width,height)*0.1)}px)`; // Cap blur
-                        offscreenCtx.drawImage(offscreenCanvas, 0, 0); // Apply blur by redrawing
+                        offscreenCtx.filter = `blur(${Math.min(scaledNatureBlur, Math.min(width,height)*0.1)}px)`; 
+                        offscreenCtx.drawImage(offscreenCanvas, 0, 0); 
                         offscreenCtx.filter = 'none';
                     }
                     applyGrain(offscreenCtx, width, height, lastGeneratedParams.grainLevel);
@@ -994,7 +997,6 @@
                 if (key) {
                     localStorage.setItem(API_KEY_STORAGE_KEY, key);
                     apiKeyModal.style.display = "none";
-                    // Attempt to generate if in Nature tab
                     if (activeTab === 'nature') {
                          generateAndDisplayNaturePreview();
                     }
@@ -1034,7 +1036,7 @@
                         img.onload = () => {
                             ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
                             if (itemParams.natureBlur > 0) {
-                                ctx.filter = `blur(${itemParams.natureBlur * (canvas.width/PREVIEW_BASE_WIDTH)}px)`; // Approx scaled blur for thumb
+                                ctx.filter = `blur(${itemParams.natureBlur * (canvas.width/PREVIEW_BASE_WIDTH)}px)`; 
                                 ctx.drawImage(canvas,0,0);
                                 ctx.filter = 'none';
                             }
@@ -1054,8 +1056,8 @@
                 });
             }
             function restoreFromHistory(paramsToRestore) {
-                lastGeneratedParams = JSON.parse(JSON.stringify(paramsToRestore)); // Deep copy
-                switchTab(paramsToRestore.type); // Switch to the correct tab
+                lastGeneratedParams = JSON.parse(JSON.stringify(paramsToRestore)); 
+                switchTab(paramsToRestore.type); 
 
                 if (paramsToRestore.type === 'blobStudio') {
                     paramsToRestore.colors.forEach((color, i) => { if (colorInputs[i]) colorInputs[i].value = color; });
@@ -1070,7 +1072,7 @@
                     natureBlurAmountSelect.value = paramsToRestore.natureBlur;
                     natureGrainLevelSelect.value = paramsToRestore.grainLevel;
                     
-                    currentRawAINatureImage = new Image(); // Prepare to load
+                    currentRawAINatureImage = new Image(); 
                     currentRawAINatureImage.onload = () => {
                         displayNaturePreviewFromRaw(currentRawAINatureImage, paramsToRestore.natureBlur, paramsToRestore.grainLevel);
                     };
@@ -1086,8 +1088,7 @@
 
             // --- Initial Load Actions ---
             renderHistory();
-            // Default to Blob Studio view and generate initial preview
-            switchTab('blobStudio'); // Set blobStudio as default active tab
+            switchTab('blobStudio'); 
             generateAndDisplayBlobPreview(); 
         });
     </script>
